@@ -18,11 +18,11 @@ public class StorageManager
         							.appName("Spark Files POC")
         							.master("local[4]")
         							.getOrCreate();
-        
+  /*      
         Dataset<Row> df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
         df.show();
-  
-        new StorageHTTPServer().startHTTPServer();
+  */
+        new StorageHTTPServer().startHTTPServer(sparkSession);
     
     }
     
