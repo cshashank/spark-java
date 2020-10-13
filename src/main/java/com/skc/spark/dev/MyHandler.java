@@ -28,21 +28,29 @@ public class MyHandler implements com.sun.net.httpserver.HttpHandler {
 	
 	@Override
         public void handle(HttpExchange httpExchange) throws IOException {
-			System.out.println("In MyHandler.handle()");
 			Dataset<Row> emp_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
-			emp_df.createOrReplaceTempView("empData");
-			Dataset<Row> result = sparkSession.sql("select * from empData");
-			List<Row> rowsList = result.collectAsList();
-			Iterator<Row> empDetails = rowsList.iterator();
-			StringBuffer responseBuffer =  new StringBuffer();
-			while(empDetails.hasNext()) {
-				responseBuffer.append(empDetails.next().toString());
-			}
+			Dataset<Row> skill_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/skills.csv");
 	
-	        emp_df.show();	
-            
             URI requestURI = httpExchange.getRequestURI();
-            String response = "This is the response at "+requestURI + "and request query is "+requestURI.getQuery()+responseBuffer;
+            String csvTable = requestURI.getQuery();
+            
+            String response = "This is the response at "+requestURI + "and request query is "+requestURI.getQuery()
+            +fetchTableData(emp_df);
+            
+            Dataset<Row> temp_df = null; 
+            if(csvTable.equalsIgnoreCase("employee")) {
+            	temp_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
+            }else if(csvTable.equalsIgnoreCase("skills")) {
+            	temp_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/skills.csv");
+            }	
+            
+            if (temp_df == null) {
+                response = "Please enter either employee or skills";
+            }else {
+                response = fetchTableData(temp_df);
+            }
+             
+            
             
             httpExchange.sendResponseHeaders(200, response.length());
             OutputStream os = httpExchange.getResponseBody();
@@ -52,16 +60,16 @@ public class MyHandler implements com.sun.net.httpserver.HttpHandler {
             os.close();
 	}
 	
-	public String fetchTableData(Dataset df) {
-		emp_df.createOrReplaceTempView("empData");
-		Dataset<Row> result = sparkSession.sql("select * from empData");
+	public String fetchTableData(Dataset temp_df) {
+		temp_df.createOrReplaceTempView("tempData");
+		Dataset<Row> result = sparkSession.sql("select * from tempData");
 		List<Row> rowsList = result.collectAsList();
-		Iterator<Row> empDetails = rowsList.iterator();
+		Iterator<Row> tempDataDetails = rowsList.iterator();
 		StringBuffer responseBuffer =  new StringBuffer();
-		while(empDetails.hasNext()) {
-			responseBuffer.append(empDetails.next().toString());
+		while(tempDataDetails.hasNext()) {
+			responseBuffer.append(tempDataDetails.next().toString());
 		}
-		
+//		temp_df.show();
 		return responseBuffer.toString();
 	}
 

@@ -12,17 +12,18 @@ public class StorageHTTPServer {
 	
 	public StorageHTTPServer() {}
 	public StorageHTTPServer(SparkSession sparkSession) {
-		System.out.println("In StorageHTTPServer");
 	    Dataset<Row> df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
 	    df.show();	
 	}
 	
 	public void startHTTPServer(SparkSession sparkSession) throws IOException {
-	       HttpServer server = HttpServer.create(new InetSocketAddress(8586), 0);
+			int port = 8586;
+			HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 	        server.createContext("/test", new MyHandler(sparkSession));
 	        server.setExecutor(null); // creates a default executor
 	        server.start();
-	 
+	        System.out.println("Started server at "+ port + " on context /text");
+	        System.out.println("/test?employee or /test?skill");
 	}
 	
 

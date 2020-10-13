@@ -12,7 +12,6 @@ import org.apache.spark.sql.SparkSession;
 public class StorageManager 
 {
     public static void main( String[] args ) throws IOException{
-        System.out.println( "Hello World 123!" );
 
         SparkSession sparkSession = SparkSession.builder()
         							.appName("Spark Files POC")
