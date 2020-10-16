@@ -19,11 +19,11 @@ public class StorageHTTPServer {
 	public void startHTTPServer(SparkSession sparkSession) throws IOException {
 			int port = 8586;
 			HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-	        server.createContext("/test", new MyHandler(sparkSession));
+	        server.createContext("/radar", new MyHandler(sparkSession));
 	        server.setExecutor(null); // creates a default executor
 	        server.start();
 	        System.out.println("Started server at "+ port + " on context /text");
-	        System.out.println("/test?employee or /test?skill");
+	        System.out.println("/radar?Select * from employee or /radar?Select * from skills");
 	}
 	
 

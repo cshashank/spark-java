@@ -18,6 +18,13 @@ import com.sun.net.httpserver.HttpExchange;
 public class MyHandler implements com.sun.net.httpserver.HttpHandler {
 	
 	SparkSession sparkSession;
+	public final String EMPLOYEE_SQL="Select * from employee";
+	public final String SKILLS_SQL="Select * from skills";
+	public final String ALL_SQL="Select * from all";
+	public final String TABLE_EMPLOYEE="employee";
+	public final String TABLE_SKILLS="skills";
+	public final String TABLE_ALL="all";
+	
 
 	public MyHandler(SparkSession sparkSession) {
 			System.out.println("In MyHandler");
@@ -32,22 +39,29 @@ public class MyHandler implements com.sun.net.httpserver.HttpHandler {
 			Dataset<Row> skill_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/skills.csv");
 	
             URI requestURI = httpExchange.getRequestURI();
-            String csvTable = requestURI.getQuery();
+//            String csvTable = requestURI.getQuery();
+            String csvTable = fetchTableFromUri(requestURI.getQuery());
             
-            String response = "This is the response at "+requestURI + "and request query is "+requestURI.getQuery()
-            +fetchTableData(emp_df);
             
+//            String response = "This is the response at "+requestURI + "and request query is "+requestURI.getQuery()
+//            +fetchTableData(emp_df);
+            
+            String response=null;
             Dataset<Row> temp_df = null; 
+            StringBuffer resultStr = new StringBuffer();
+        	Dataset<Row> employee_df  = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
+        	Dataset<Row> skills_df  = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/skills.csv");
+            
             if(csvTable.equalsIgnoreCase("employee")) {
-            	temp_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/employee.csv");
+                response = fetchTableData(employee_df);
             }else if(csvTable.equalsIgnoreCase("skills")) {
-            	temp_df = sparkSession.read().csv("/opt/bitnami/spark/examples/jars/skills.csv");
+                response = fetchTableData(skill_df);
+            }else if(csvTable.equalsIgnoreCase("all")) {
+                response = fetchTableData(employee_df,skill_df);
             }	
             
-            if (temp_df == null) {
+            if (response == null) {
                 response = "Please enter either employee or skills";
-            }else {
-                response = fetchTableData(temp_df);
             }
              
             
@@ -71,6 +85,22 @@ public class MyHandler implements com.sun.net.httpserver.HttpHandler {
 		}
 //		temp_df.show();
 		return responseBuffer.toString();
+	}
+	public String fetchTableData(Dataset temp_df,Dataset temp1_df) {
+		StringBuffer netResult = new StringBuffer();
+		netResult.append(fetchTableData(temp_df))
+			.append("<br>")
+			.append(fetchTableData(temp1_df));
+		return netResult.toString();
+	}
+	
+	public String fetchTableFromUri(String uri) {
+		String _table="employee";
+		if(uri.equalsIgnoreCase(EMPLOYEE_SQL)) return TABLE_EMPLOYEE;
+		if(uri.equalsIgnoreCase(SKILLS_SQL)) return TABLE_SKILLS;
+		if(uri.equalsIgnoreCase(ALL_SQL)) return TABLE_ALL;
+		return _table;
+		
 	}
 
 }
